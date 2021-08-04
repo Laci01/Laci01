@@ -1,0 +1,124 @@
+import numpy as np
+import time, getpass, shutil, os
+from array import array
+
+
+
+current_user = getpass.getuser()
+print(f"Welcome {current_user} in the RND_GENERATOR-Parser pipeline ver 2.0")
+print("\n")
+time.sleep(1)
+
+##########################################################################################
+# >>> RND_GENERATOR <<< #
+##########################################################################################
+def rnd_gen(data):     # a random generátor function - TODO: docstring -
+    idx_1 = np.random.choice(data)
+    idx_2 = np.random.choice(data)
+    if idx_1 > idx_2:
+        return idx_1*(-1),idx_2*(-1)
+    else:
+        return idx_1,idx_2
+
+
+contr = array("i",[con for con in range(1,5001)]) # this part stands for the control/intact genome
+
+
+
+pombe = []
+japo = []
+octo = []
+cryo = []
+
+class RandomGenomeGen:
+    var = 0
+    """ Ensure that every generator gen_p - for S.pombe, gen_o for S. octosporus
+     and gen_c for S. cryophilus is connented to the appropriate slicer
+     UPDATE: ver 1.1:
+     - generators [gen_p, gen_o, gen_c] were transformned to array which decreased the 
+       runtime from 2.06 sec to 1.21 sec [~41,27% faster]
+     UPDATE: ver 2.0: gen_p, gen_o, gen_c were redesigned by using NumPy arange generator.
+     - this had also increased the runtime speed"""
+
+    num = 1
+    def __init__(self,path,pombe_cycle,cryo_cycle,octo_cycle, file_amount):
+
+        self.path = path
+        self.octo = octo_cycle
+        self.cryo = cryo_cycle
+        self.pombe = pombe_cycle
+        self.files = file_amount
+
+        if self.path:
+            try:
+                os.mkdir(os.getcwd()+"\generator_folder")
+            except FileExistsError:
+                shutil.rmtree("os.getcwd()+"\generator_folder") # warning this will overwrite the existing "generator_folder" if path is True!
+        os.mkdir(os.getcwd()+"\generator_folder")
+
+
+        for _ in range(self.files):
+
+            gen_p = np.arange(1,5001)
+            gen_o = np.arange(1,5001)
+            gen_c = np.arange(1,5001)
+
+            for __ in range(self.pombe):
+                random_points_P = []
+                for var in range(1):
+                    random_points_P.append(rnd_gen(gen_p))
+
+                # apply the random points to the original 1-5000 sequence
+                sliced_p = gen_p[random_points_P[0][0]:random_points_P[0][1]]
+
+                # in order to make an inversion we have to revert this sequence
+                reverted_pombe = sliced_p[::-1]
+
+                # now we'd like to replace the original index with the inverted one
+                # in the same time we'll use this sequence for the next loop as entry sequence
+                gen_p[random_points_P[0][0]:random_points_P[0][1]] = reverted_pombe
+                pombe.append(gen_p)
+
+            for __ in range(self.octo):
+                random_points_o = []
+                for var in range(1):
+                    random_points_o.append(rnd_gen(gen_o))
+
+                # apply the random points to the original 1-5000 sequence
+                sliced_o = gen_o[random_points_o[0][0]:random_points_o[0][1]]
+
+                # in order to make an inversion we have to revert this sequence
+                reverted_octo = sliced_o[::-1]
+
+
+                # now we'd like to replace the original index with the inverted one
+                # in the same time we'll use this sequence for the next loop as entry sequence
+                gen_o[random_points_o[0][0]:random_points_o[0][1]] = reverted_octo
+                octo.append(gen_o)
+
+            for __ in range(self.cryo):
+                random_points_c = []
+                for var in range(1):
+                    random_points_c.append(rnd_gen(gen_c))
+
+                # apply the random points to the original 1-5000 sequence
+                sliced_cr = gen_c[random_points_c[0][0]:random_points_c[0][1]]
+                # in order to make an inversion we have to revert this sequence
+                reverted_cryo = sliced_cr[::-1]
+
+                # now we'd like to replace the original index with the inverted one
+                # in the same time we'll use this sequence for the next loop as entry sequence
+                gen_c[random_points_c[0][0]:random_points_c[0][1]] = reverted_cryo
+                cryo.append(gen_c)
+
+            directory = os.getcwd()+"\generator_folder" 
+            filename = f"/Random_genom{self.num}"
+            with open(directory+filename+".csv","w") as csv:
+                print("dummy_var;japo;pombe;octo;cryo",file=csv)
+                for control, p,o,c in zip(contr,pombe[-1],octo[-1],cryo[-1]):
+                    print(f"{'dummy_var'};{control};{p};{o};{c}",file=csv)
+            self.num += 1
+            print(self.num)
+
+
+r_gen = RandomGenomeGen(file_amount=1,pombe_cycle=1,cryo_cycle=50,octo_cycle=10,path=True)
