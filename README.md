@@ -1,6 +1,6 @@
 - 👋 Hi, I’m @Laci01
 - 👀 I’m interested in Python programming language!
-- 🌱 I’m currently learning machine learning/
+- 🌱 I’m currently learning machine learning/general programming
 - 📫 You can reach me through papp.laszlo.attila@science.unideb.hu
 
 <!---
